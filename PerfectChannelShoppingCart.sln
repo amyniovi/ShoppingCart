@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfectChannelShoppingCart", "PerfectChannelShoppingCart\PerfectChannelShoppingCart.csproj", "{2841DF38-9D10-465F-9F98-81FA4FB6BF99}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerfectChannelShoppingCart.Tests", "PerfectChannelShoppingCart.Tests\PerfectChannelShoppingCart.Tests.csproj", "{8B2FE2CF-C1B9-4A36-84DC-A93734A4F08F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2841DF38-9D10-465F-9F98-81FA4FB6BF99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2841DF38-9D10-465F-9F98-81FA4FB6BF99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2841DF38-9D10-465F-9F98-81FA4FB6BF99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2841DF38-9D10-465F-9F98-81FA4FB6BF99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B2FE2CF-C1B9-4A36-84DC-A93734A4F08F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B2FE2CF-C1B9-4A36-84DC-A93734A4F08F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B2FE2CF-C1B9-4A36-84DC-A93734A4F08F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B2FE2CF-C1B9-4A36-84DC-A93734A4F08F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
