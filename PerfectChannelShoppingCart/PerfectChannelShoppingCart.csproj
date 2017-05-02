@@ -109,11 +109,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app\index.js" />
+    <Content Include="app\login.js" />
     <Content Include="Global.asax" />
+    <Content Include="login.html" />
+    <Content Include="index.html" />
+    <Content Include="scripts\bootstrap.min.css" />
+    <Content Include="scripts\login.css" />
+    <Content Include="scripts\index.css" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\CartController.cs" />
+    <Compile Include="Controllers\ItemController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -124,6 +133,7 @@
     <Content Include="ApplicationInsights.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="README.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -133,7 +143,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\" />
     <Folder Include="Models\" />
   </ItemGroup>
   <PropertyGroup>
