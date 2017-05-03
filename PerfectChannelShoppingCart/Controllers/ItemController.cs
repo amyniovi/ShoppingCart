@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -31,7 +32,7 @@ namespace PerfectChannelShoppingCart.Controllers
 
     public class ItemRepo : IItemRepo
     {
-        public static List<Item> Items = new List<Item>
+        public static ConcurrentBag<Item> Items = new ConcurrentBag<Item>()
             {
                 new Item {Id = 1, Name = "Apples", Description = "Fruit", Stock = 5, Price = 2.5m},
                 new Item {Id = 2, Name = "Bread", Description = "Loaf", Stock = 10, Price = 1.35m},
@@ -44,11 +45,23 @@ namespace PerfectChannelShoppingCart.Controllers
         {
             return Items.OrderBy(item=>item.Name);
         }
+
+        public Item GetbyId(int id)
+        {
+            return Items.FirstOrDefault(item => item.Id == id);
+        }
+
+        public Item GetbyName(string itemName)
+        {
+            return Items.FirstOrDefault(item => String.Equals(item.Name, itemName, StringComparison.InvariantCultureIgnoreCase));
+        }
     }
 
     public interface IItemRepo
     {
         IEnumerable<Item> Get();
+        Item GetbyId(int id);
+        Item GetbyName(string itemName);
     }
 
     public class Item
