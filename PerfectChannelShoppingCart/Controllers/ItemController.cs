@@ -9,6 +9,7 @@ using System.Web.Http;
 
 namespace PerfectChannelShoppingCart.Controllers
 {
+    [RoutePrefix("api/item")]
     public class ItemController : ApiController
     {
         private readonly IItemRepo _itemRepo;
@@ -25,8 +26,15 @@ namespace PerfectChannelShoppingCart.Controllers
 
         public IHttpActionResult Get()
         {
-            var items = _itemRepo.Get();
+            var items = _itemRepo.Get().ToList();
+           // items.ForEach(item=>item.Uri = Request.RequestUri.ToString() + "/" +item.Id);
             return Ok(items);
+        }
+
+        [Route("{id}")]
+        public IHttpActionResult Get(int id)
+        {
+            return  Ok(_itemRepo.GetbyId(id));
         }
     }
 
@@ -36,7 +44,7 @@ namespace PerfectChannelShoppingCart.Controllers
             {
                 new Item {Id = 1, Name = "Apples", Description = "Fruit", Stock = 5, Price = 2.5m},
                 new Item {Id = 2, Name = "Bread", Description = "Loaf", Stock = 10, Price = 1.35m},
-                new Item {Id = 3, Name = "Oranges", Description = "Fruit", Stock = 3, Price = 2.99m},
+                new Item {Id = 3, Name = "Oranges", Description = "Fruit", Stock = 0, Price = 2.99m},
                 new Item {Id = 4, Name = "Milk", Description = "Milk", Stock = 10, Price = 2.07m},
                 new Item {Id = 5, Name = "Chocolate", Description = "Bars", Stock = 20, Price = 1.79m}
             };
@@ -71,5 +79,11 @@ namespace PerfectChannelShoppingCart.Controllers
         public string Description { get; set; }
         public int Stock { get; set; }
         public decimal Price { get; set; }
+        public string Uri { get; set; }
+
+        public bool IsEligibleForCart()
+        {
+            return EligibleItemDelegates.AddToCartRules.All(rule => rule(this));
+        }
     }
 }

@@ -13,10 +13,11 @@ namespace PerfectChannelShoppingCart.Controllers
     {
         private readonly ICartRepo _cartRepo;
         private readonly IItemRepo _itemRepo;
+        public const string OutOfStockText = "This item is currently unavailable";
         //there should be functionality to check whether user is logged in 
-       /* if (Request.Headers?.GetCookies("username") == null)
-                return NotFound();
-                */
+        /* if (Request.Headers?.GetCookies("username") == null)
+                 return NotFound();
+                 */
         public CartController()
         {
             _cartRepo = new CartRepo();
@@ -81,7 +82,9 @@ namespace PerfectChannelShoppingCart.Controllers
         public IHttpActionResult Post(int id, string username)
         {
             var item = _itemRepo.GetbyId(id);
-            if (item == null) return NotFound();            
+            if (item == null) return NotFound(); 
+            if (!item.IsEligibleForCart())
+                return BadRequest(OutOfStockText);           
             var cart = _cartRepo.GetByUserName(username);
             if (cart ==null)
                 return NotFound();
@@ -122,6 +125,24 @@ namespace PerfectChannelShoppingCart.Controllers
             var cart = new Cart() { UniqueId = username };
             Carts.TryAdd(username, cart);
         }
+
+        public Cart Update(IEnumerable<KeyValuePair<int,int>> itemQuantityKeyValuePair)
+        {
+            throw new NotImplementedException();
+        }
+
+      
+    }
+
+    public static class EligibleItemDelegates
+    {
+        public static Predicate<Item> InStock = new Predicate<Item>(item => item.Stock > 0);
+        public static List<Predicate<Item>> AddToCartRules = new List<Predicate<Item>>();
+
+        static EligibleItemDelegates()
+        {
+            AddToCartRules.Add(InStock);
+        }
     }
 
     public interface ICartRepo
@@ -134,6 +155,7 @@ namespace PerfectChannelShoppingCart.Controllers
     public class Cart
     {
         public string UniqueId { get; set; }
-        public IEnumerable<Item> Items { get; set; } = new List<Item>();
+        public IEnumerable<Item> Items { get; set; } = new List<Item>();       
     }
+
 }

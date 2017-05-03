@@ -14,15 +14,39 @@ namespace PerfectChannelShoppingCart.Tests
         private readonly IItemRepo _itemRepo = new ItemRepo();
         private readonly ICartRepo _cartRepo = new CartRepo();
         private const string TestUsername = "amy";
+        private ItemController _itemController;
         private CartController _cartController;
-        private string _testName = "milk";
-        private int _testId = 1;
-        private int _anotherTestId = 4;
+        private OrderController _orderController;
+        private const string _testName = "milk";
+        private const int _testId = 1;
+        private const int _anotherTestId = 4;
+        private const int _outOfStockItemId = 3;
+        private const string _outOfStockItemName = "Oranges";
+        private Dictionary<string, int> _orderedItems;
+        private Invoice _testInvoice;
+
         [SetUp]
         public void SetUp()
         {
             _cartController = new CartController();
+            _orderController = new OrderController();
+            _itemController = new ItemController();
+            _orderedItems = new Dictionary<string, int>();
+            _orderedItems.Add("Bread", 2);
+            _orderedItems.Add("Chocolate", 5);
+            _testInvoice = new Invoice();
+            _testInvoice.OrderedItems = new List<OrderedItem>()
+            { new OrderedItem()
+                {
+                    Name = "Bread",Quantity = 2,TotalPrice = (2 * 1.35m)
 
+                } ,
+                new OrderedItem()
+                {
+                    Name = "Chocolate", Quantity = 5, TotalPrice = 5 * 1.79m
+
+                } };
+            _testInvoice.TotalPrice = 2 * 1.35m + 5 * 1.79m;
         }
 
         [Test]
@@ -63,7 +87,6 @@ namespace PerfectChannelShoppingCart.Tests
 
             Assert.That(result?.Content.Items.Count() == initialItemCount + 1);
             Assert.That(result?.Content.Items.Last() == _itemRepo.GetbyName(_testName));
-
         }
 
         [Test]
@@ -92,25 +115,42 @@ namespace PerfectChannelShoppingCart.Tests
         }
 
         [Test]
-        public void Patch_Cart_ItemId_DoesntAddIfOutOfStock()
+        public void PostCart_ItemId_DoesntAddIfOutOfStock()
         {
+            _cartRepo.AddByUserName(TestUsername);
+            var cart = _cartRepo.GetByUserName(TestUsername);
+            var initialItemCount = cart.Items.Count();
+
+            _cartController.Post(_outOfStockItemId, TestUsername);
+
+            Assert.That(cart.Items.Count() == initialItemCount);
+            Assert.That(cart.Items.Contains(_itemRepo.GetbyId(_outOfStockItemId)) == false);
         }
 
         [Test]
-        public void Patch_Cart_ItemName_DoesntAddIfOutOfStock()
+        public void PostCart_ItemName_DoesntAddIfOutOfStock()
         {
+            _cartRepo.AddByUserName(TestUsername);
+            var cart = _cartRepo.GetByUserName(TestUsername);
+            var initialItemCount = cart.Items.Count();
+
+            _cartController.Post(_outOfStockItemName, TestUsername);
+
+            Assert.That(cart.Items.Count() == initialItemCount);
+            Assert.That(cart.Items.Contains(_itemRepo.GetbyId(_outOfStockItemId)) == false);
         }
 
         [Test]
-        public void Patch_Cart_ItemsAndQty_ReturnsCartWithExpectedItemsandQty()
+        public void CheckoutCart_PostOrder_ReturnInvoiceOfItems()
         {
+            _cartRepo.AddByUserName(TestUsername);
+
+            var result = _orderController.Post(_orderedItems) as OkNegotiatedContentResult<Invoice>;
+
+            Assert.That(result?.Content.TotalPrice == _testInvoice.TotalPrice);
+            //check individual items too (prices)
         }
 
-        [Test]
-
-        public void Get_Cart_Checkout_ReturnInvoiceOfItems()
-        {
-        }
 
         [Test]
         public void Get_Invoice_ByCartName_GetInvoiceOfCorrectItems()
@@ -118,8 +158,15 @@ namespace PerfectChannelShoppingCart.Tests
         }
 
         [Test]
-        public void Get_Invoice_ByCartName_ThenRequestAllItems_ExpectStockReduced()
+        public void CheckoutCart_ThenRequestAllItems_ExpectStockReduced()
         {
+            _cartRepo.AddByUserName(TestUsername);
+
+            var result = _orderController.Post(_orderedItems) as OkNegotiatedContentResult<Invoice>;
+
+            var resultItems = _itemController.Get() as OkNegotiatedContentResult<List<Item>>;
+            var items = resultItems?.Content;
+            Assert.That(items?.FirstOrDefault(item => item.Name == "Chocolate")?.Stock == 15);
         }
 
         [TearDown]
@@ -127,6 +174,9 @@ namespace PerfectChannelShoppingCart.Tests
         {
             CartRepo.Carts.Clear();
         }
+
+
+
 
     }
 }
