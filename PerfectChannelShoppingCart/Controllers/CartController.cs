@@ -47,8 +47,6 @@ namespace PerfectChannelShoppingCart.Controllers
                 return InternalServerError();
             }
 
-            if (cart == null)
-                return NotFound();
             return Ok(cart);
 
         }
@@ -62,13 +60,13 @@ namespace PerfectChannelShoppingCart.Controllers
         {
             try
             {
-                    _cartRepo.AddByUserName(username);
+                _cartRepo.AddByUserName(username);
             }
             catch
             {
                 return InternalServerError();
             }
-           
+
             return Ok(_cartRepo.GetByUserName(username));
         }
 
@@ -82,13 +80,13 @@ namespace PerfectChannelShoppingCart.Controllers
         public IHttpActionResult Post(int id, string username)
         {
             var item = _itemRepo.GetbyId(id);
-            if (item == null) return NotFound(); 
+            if (item == null) return NotFound();
             if (!item.IsEligibleForCart())
-                return BadRequest(OutOfStockText);           
+                return BadRequest(OutOfStockText);
+            //checks and adds
+            _cartRepo.AddByUserName(username);
             var cart = _cartRepo.GetByUserName(username);
-            if (cart ==null)
-                return NotFound();
-            
+
             var list = cart.Items.ToList();
             list.Add(item);
             cart.Items = list;
@@ -105,7 +103,7 @@ namespace PerfectChannelShoppingCart.Controllers
         public IHttpActionResult Post(string itemName, string username)
         {
             var item = _itemRepo.GetbyName(itemName);
-            return Post(item.Id,username);
+            return Post(item.Id, username);
         }
     }
 
@@ -126,12 +124,12 @@ namespace PerfectChannelShoppingCart.Controllers
             Carts.TryAdd(username, cart);
         }
 
-        public Cart Update(IEnumerable<KeyValuePair<int,int>> itemQuantityKeyValuePair)
+        public Cart Update(IEnumerable<KeyValuePair<int, int>> itemQuantityKeyValuePair)
         {
             throw new NotImplementedException();
         }
 
-      
+
     }
 
     public static class EligibleItemDelegates
@@ -155,7 +153,7 @@ namespace PerfectChannelShoppingCart.Controllers
     public class Cart
     {
         public string UniqueId { get; set; }
-        public IEnumerable<Item> Items { get; set; } = new List<Item>();       
+        public IEnumerable<Item> Items { get; set; } = new List<Item>();
     }
 
 }
