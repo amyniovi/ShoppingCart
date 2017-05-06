@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Web.Http;
+using PerfectChannelShoppingCart.Models;
+using PerfectChannelShoppingCart.PChannel.Factories;
+using PerfectChannelShoppingCart.PChannel.Interfaces;
+using PerfectChannelShoppingCart.PChannel.Repositories;
 
 namespace PerfectChannelShoppingCart.Controllers
 {
@@ -73,22 +74,31 @@ namespace PerfectChannelShoppingCart.Controllers
         /// <summary>
         /// Updates a cart with an item. Many posts should return to many additions hence not using PUT.(not idempotent)
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="username"></param>
-        /// <returns></returns>
-        [Route("{username}/item/{id}")]
-        public IHttpActionResult Post(int id, string username)
+        [Route("{username}/item/{id}/{qty}")]
+        public IHttpActionResult Post(int id, int qty, string username)
         {
             var item = _itemRepo.GetbyId(id);
             if (item == null) return NotFound();
-            if (!item.IsEligibleForCart())
-                return BadRequest(OutOfStockText);
+           
             //checks and adds
             _cartRepo.AddByUserName(username);
             var cart = _cartRepo.GetByUserName(username);
-
+            if (!item.IsEligibleForCart())
+            {
+                item.Info = $"Only {item.Stock} items in Stock. ";
+                return Ok(cart);
+            }
             var list = cart.Items.ToList();
-            list.Add(item);
+            if (list.All(x => x.Id != id))
+            {
+                list.Add(ItemDtoFactory.Create(item, qty));
+            }
+            else
+            {
+                var itemDto = list.FirstOrDefault(i => i.Id == id);
+                if(itemDto != null)
+                itemDto.Qty = qty;
+            }
             cart.Items = list;
             return Ok(cart);
         }
@@ -96,40 +106,12 @@ namespace PerfectChannelShoppingCart.Controllers
         /// <summary>
         /// Updates a cart with an item. Many posts should return to many additions hence not using PUT.(not idempotent)
         /// </summary>
-        /// <param name="itemName"></param>
-        /// <param name="username"></param>
-        /// <returns></returns>
-        [Route("{username}/item/{id}")]
-        public IHttpActionResult Post(string itemName, string username)
+        [Route("{username}/item/{id}/{qty}")]
+        public IHttpActionResult Post(string itemName, int qty, string username)
         {
             var item = _itemRepo.GetbyName(itemName);
-            return Post(item.Id, username);
+            return Post(item.Id, qty, username);
         }
-    }
-
-    public class CartRepo : ICartRepo
-    {
-        //Logging in creates a Cart for the username
-        public static ConcurrentDictionary<string, Cart> Carts = new ConcurrentDictionary<string, Cart>(StringComparer.OrdinalIgnoreCase);
-        public Cart GetByUserName(string username)
-        {
-            Cart cart = null;
-            Carts.TryGetValue(username, out cart);
-            return cart;
-        }
-
-        public void AddByUserName(string username)
-        {
-            var cart = new Cart() { UniqueId = username };
-            Carts.TryAdd(username, cart);
-        }
-
-        public Cart Update(IEnumerable<KeyValuePair<int, int>> itemQuantityKeyValuePair)
-        {
-            throw new NotImplementedException();
-        }
-
-
     }
 
     public static class EligibleItemDelegates
@@ -142,18 +124,4 @@ namespace PerfectChannelShoppingCart.Controllers
             AddToCartRules.Add(InStock);
         }
     }
-
-    public interface ICartRepo
-    {
-        Cart GetByUserName(string username);
-        void AddByUserName(string username);
-
-    }
-
-    public class Cart
-    {
-        public string UniqueId { get; set; }
-        public IEnumerable<Item> Items { get; set; } = new List<Item>();
-    }
-
 }

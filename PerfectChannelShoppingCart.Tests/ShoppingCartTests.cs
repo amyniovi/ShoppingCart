@@ -5,6 +5,9 @@ using System.Linq.Expressions;
 using System.Web.Http.Results;
 using NUnit.Framework;
 using PerfectChannelShoppingCart.Controllers;
+using PerfectChannelShoppingCart.Models;
+using PerfectChannelShoppingCart.PChannel.Interfaces;
+using PerfectChannelShoppingCart.PChannel.Repositories;
 
 namespace PerfectChannelShoppingCart.Tests
 {
@@ -35,15 +38,15 @@ namespace PerfectChannelShoppingCart.Tests
             _orderedItems.Add("Bread", 2);
             _orderedItems.Add("Chocolate", 5);
             _testInvoice = new Invoice();
-            _testInvoice.OrderedItems = new List<OrderedItem>()
-            { new OrderedItem()
+            _testInvoice.OrderedItems = new List<CartItemDto>()
+            { new CartItemDto()
                 {
-                    Name = "Bread",Quantity = 2,TotalPrice = (2 * 1.35m)
+                    Name = "Bread",Qty = 2
 
                 } ,
-                new OrderedItem()
+                new CartItemDto()
                 {
-                    Name = "Chocolate", Quantity = 5, TotalPrice = 5 * 1.79m
+                    Name = "Chocolate", Qty = 5
 
                 } };
             _testInvoice.TotalPrice = 2 * 1.35m + 5 * 1.79m;
@@ -69,10 +72,10 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            var result = _cartController.Post(_testId, TestUsername) as OkNegotiatedContentResult<Cart>;
+            var result = _cartController.Post(_testId, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
 
             Assert.That(result?.Content.Items.Count() == initialItemCount + 1);
-            Assert.That(result?.Content.Items.Last() == _itemRepo.GetbyId(_testId));
+            Assert.That(result?.Content.Items.Last().Id == _testId);
         }
 
         [Test]
@@ -83,10 +86,10 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            var result = _cartController.Post(_testName, TestUsername) as OkNegotiatedContentResult<Cart>;
+            var result = _cartController.Post(_testName, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
 
             Assert.That(result?.Content.Items.Count() == initialItemCount + 1);
-            Assert.That(result?.Content.Items.Last() == _itemRepo.GetbyName(_testName));
+            Assert.That(result?.Content.Items.Last().Name == _testName);
         }
 
         [Test]
@@ -97,7 +100,6 @@ namespace PerfectChannelShoppingCart.Tests
             var result = _cartController.Get(TestUsername) as OkNegotiatedContentResult<Cart>;
 
             Assert.AreEqual(_cartRepo.GetByUserName(TestUsername), result?.Content);
-
         }
 
         [Test]
@@ -106,8 +108,8 @@ namespace PerfectChannelShoppingCart.Tests
             _cartRepo.AddByUserName(TestUsername);
             _cartController.Get(TestUsername);
 
-            _cartController.Post(_testId, TestUsername);
-            var result = _cartController.Post(_anotherTestId, TestUsername) as OkNegotiatedContentResult<Cart>;
+            _cartController.Post(_testId, 1, TestUsername);
+            var result = _cartController.Post(_anotherTestId, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
 
             Assert.That(result?.Content.Items.Count() == 2);
             var list = new List<Item> { _itemRepo.GetbyId(_testId), _itemRepo.GetbyId(_anotherTestId) };
@@ -121,10 +123,10 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            _cartController.Post(_outOfStockItemId, TestUsername);
+            _cartController.Post(_outOfStockItemId, 1, TestUsername);
 
             Assert.That(cart.Items.Count() == initialItemCount);
-            Assert.That(cart.Items.Contains(_itemRepo.GetbyId(_outOfStockItemId)) == false);
+            Assert.That(cart.Items.All(item => item.Id != _outOfStockItemId));
         }
 
         [Test]
@@ -134,10 +136,10 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            _cartController.Post(_outOfStockItemName, TestUsername);
+            _cartController.Post(_outOfStockItemName, 1, TestUsername);
 
             Assert.That(cart.Items.Count() == initialItemCount);
-            Assert.That(cart.Items.Contains(_itemRepo.GetbyId(_outOfStockItemId)) == false);
+            Assert.That(cart.Items.All(item => item.Name != _outOfStockItemName));
         }
 
         [Test]
@@ -145,7 +147,7 @@ namespace PerfectChannelShoppingCart.Tests
         {
             _cartRepo.AddByUserName(TestUsername);
 
-            var result = _orderController.Post(_orderedItems) as OkNegotiatedContentResult<Invoice>;
+            var result = _orderController.Get(_orderedItems) as OkNegotiatedContentResult<Invoice>;
 
             Assert.That(result?.Content.TotalPrice == _testInvoice.TotalPrice);
             //check individual items too (prices)
@@ -162,7 +164,7 @@ namespace PerfectChannelShoppingCart.Tests
         {
             _cartRepo.AddByUserName(TestUsername);
 
-            var result = _orderController.Post(_orderedItems) as OkNegotiatedContentResult<Invoice>;
+            var result = _orderController.Get(_orderedItems) as OkNegotiatedContentResult<Invoice>;
 
             var resultItems = _itemController.Get() as OkNegotiatedContentResult<List<Item>>;
             var items = resultItems?.Content;

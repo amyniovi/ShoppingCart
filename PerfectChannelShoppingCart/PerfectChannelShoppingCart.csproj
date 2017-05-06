@@ -110,8 +110,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\index.js" />
+    <Content Include="app\invoice.js" />
     <Content Include="app\login.js" />
     <Content Include="Global.asax" />
+    <Content Include="invoice.html" />
     <Content Include="login.html" />
     <Content Include="index.html" />
     <Content Include="scripts\bootstrap.min.css" />
@@ -127,6 +129,14 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\Cart.cs" />
+    <Compile Include="Models\CartItemDto.cs" />
+    <Compile Include="Models\Item.cs" />
+    <Compile Include="PChannel.Factories\ItemDtoFactory.cs" />
+    <Compile Include="PChannel.Interfaces\ICartRepo.cs" />
+    <Compile Include="PChannel.Repositories\CartRepo.cs" />
+    <Compile Include="PChannel.Repositories\IItemRepo.cs" />
+    <Compile Include="PChannel.Repositories\ItemRepo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -141,7 +151,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

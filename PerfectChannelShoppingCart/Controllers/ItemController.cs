@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Linq;
 using System.Web.Http;
+using PerfectChannelShoppingCart.PChannel.Repositories;
 
 namespace PerfectChannelShoppingCart.Controllers
 {
@@ -27,7 +22,7 @@ namespace PerfectChannelShoppingCart.Controllers
         public IHttpActionResult Get()
         {
             var items = _itemRepo.Get().ToList();
-           // items.ForEach(item=>item.Uri = Request.RequestUri.ToString() + "/" +item.Id);
+            items.ForEach(item=>item.Uri = Request.RequestUri.ToString() + "/" +item.Id);
             return Ok(items);
         }
 
@@ -35,55 +30,6 @@ namespace PerfectChannelShoppingCart.Controllers
         public IHttpActionResult Get(int id)
         {
             return  Ok(_itemRepo.GetbyId(id));
-        }
-    }
-
-    public class ItemRepo : IItemRepo
-    {
-        public static ConcurrentBag<Item> Items = new ConcurrentBag<Item>()
-            {
-                new Item {Id = 1, Name = "Apples", Description = "Fruit", Stock = 5, Price = 2.5m},
-                new Item {Id = 2, Name = "Bread", Description = "Loaf", Stock = 10, Price = 1.35m},
-                new Item {Id = 3, Name = "Oranges", Description = "Fruit", Stock = 0, Price = 2.99m},
-                new Item {Id = 4, Name = "Milk", Description = "Milk", Stock = 10, Price = 2.07m},
-                new Item {Id = 5, Name = "Chocolate", Description = "Bars", Stock = 20, Price = 1.79m}
-            };
-
-        public  IEnumerable<Item> Get()
-        {
-            return Items.OrderBy(item=>item.Name);
-        }
-
-        public Item GetbyId(int id)
-        {
-            return Items.FirstOrDefault(item => item.Id == id);
-        }
-
-        public Item GetbyName(string itemName)
-        {
-            return Items.FirstOrDefault(item => String.Equals(item.Name, itemName, StringComparison.InvariantCultureIgnoreCase));
-        }
-    }
-
-    public interface IItemRepo
-    {
-        IEnumerable<Item> Get();
-        Item GetbyId(int id);
-        Item GetbyName(string itemName);
-    }
-
-    public class Item
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public int Stock { get; set; }
-        public decimal Price { get; set; }
-        public string Uri { get; set; }
-
-        public bool IsEligibleForCart()
-        {
-            return EligibleItemDelegates.AddToCartRules.All(rule => rule(this));
         }
     }
 }

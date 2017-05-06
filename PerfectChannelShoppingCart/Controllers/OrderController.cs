@@ -4,40 +4,52 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using PerfectChannelShoppingCart.Models;
+using PerfectChannelShoppingCart.PChannel.Interfaces;
+using PerfectChannelShoppingCart.PChannel.Repositories;
 
 namespace PerfectChannelShoppingCart.Controllers
 {
-    [RoutePrefix("api/Route")]
+    [RoutePrefix("api/order")]
     public class OrderController : ApiController
     {
         private readonly IItemRepo _itemRepo;
+        private readonly ICartRepo _cartRepo;
 
         public OrderController()
         {
             _itemRepo = new ItemRepo();
+            _cartRepo = new CartRepo();
         }
 
-        public OrderController(IItemRepo itemRepo)
+        public OrderController(IItemRepo itemRepo, ICartRepo cartRepo)
         {
             _itemRepo = itemRepo;
+            _cartRepo = cartRepo;
         }
 
-        [Route("cart/{username}/Order")]
-        public IHttpActionResult Post([FromBody] Dictionary<string, int> itemQtyDictionary)
-        {//This part should be refactored really ...too much responsibility for this Post.
+        [Route("cart/{username}")]
+        public IHttpActionResult Get(string username )
+        {//This part should be refactored really ...too much responsibility for this Get.
             var invoice = new Invoice();
-            List<OrderedItem> orderedItems = new List<OrderedItem>();
-            foreach (var itemQty in itemQtyDictionary)
+            List<CartItemDto> orderedItems = new List<CartItemDto>();
+            var cart = _cartRepo.GetByUserName(username);
+            foreach (var cartItem in cart.Items)
             {
-                var item = _itemRepo.GetbyName(itemQty.Key);
-                orderedItems.Add(new OrderedItem() { Name = itemQty.Key, Quantity = itemQty.Value, TotalPrice = itemQty.Value * item.Price });
-                item.Stock -= itemQty.Value;
-                if (item.Stock < 0)
-                    return BadRequest("item " + item.Name + ": " + item.Uri + "is currently unavailable") ;
+                var item = _itemRepo.GetbyId(cartItem.Id);
+                if (item.Stock < cartItem.Qty)
+                {
+                    item.Info = $"Only {item.Stock} items are available";
+                }
+                else
+                    item.Stock -= cartItem.Qty;
+               
+                orderedItems.Add(cartItem);
+               
             }
 
             invoice.OrderedItems = orderedItems;
-            invoice.TotalPrice = orderedItems.Sum(item => item.TotalPrice);
+            invoice.TotalPrice = orderedItems.Sum(item => item.PricePerUnit * item.Qty);
             return Ok(invoice);
         }
     }
@@ -45,12 +57,7 @@ namespace PerfectChannelShoppingCart.Controllers
     public class Invoice
     {
         public decimal TotalPrice { get; set; }
-        public List<OrderedItem> OrderedItems { get; set; }
+        public List<CartItemDto> OrderedItems { get; set; }
     }
-    public class OrderedItem
-    {
-        public string Name;
-        public int Quantity;
-        public decimal TotalPrice;
-    }
+   
 }
