@@ -1,5 +1,4 @@
-﻿using PerfectChannelShoppingCart.Controllers;
-using PerfectChannelShoppingCart.Models;
+﻿using PerfectChannelShoppingCart.Models;
 
 namespace PerfectChannelShoppingCart.PChannel.Interfaces
 {
@@ -7,7 +6,7 @@ namespace PerfectChannelShoppingCart.PChannel.Interfaces
     {
         Cart GetByUserName(string username);
         void AddByUserName(string username);
-         Cart UpdateSingleItem(string username, CartItem cartItem);
+        Cart UpdateSingleItem(string username, CartItem cartItem);
 
     }
 }

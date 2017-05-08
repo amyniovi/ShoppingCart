@@ -11,7 +11,6 @@ namespace PerfectChannelShoppingCart.PChannel.Repositories
 {
     public class CartRepo : ICartRepo
     {
-        //Logging in creates a Cart for the username
         public static ConcurrentDictionary<string, Cart> Carts = new ConcurrentDictionary<string, Cart>(StringComparer.OrdinalIgnoreCase);
         public Cart GetByUserName(string username)
         {
@@ -33,9 +32,8 @@ namespace PerfectChannelShoppingCart.PChannel.Repositories
             if (list.Any(x=> x.Id==cartItem.Id))
                 list.Remove(list.Find(x=>x.Id==cartItem.Id));
             list.Add(cartItem);
-            //cart.Items = list;
             Carts.TryUpdate(username,new Cart() {UniqueId = username,Items = list},cart );
-            return cart;
+            return GetByUserName(username);
         }
     }
 }

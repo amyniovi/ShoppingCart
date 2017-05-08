@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿
 using PerfectChannelShoppingCart.Models;
 using PerfectChannelShoppingCart.PChannel.Interfaces;
 using PerfectChannelShoppingCart.PChannel.Repositories;
@@ -21,7 +18,10 @@ namespace PerfectChannelShoppingCart.PChannel.Services
         {
             _itemRepo = itemRepo;
         }
-
+        /// <summary>
+        /// In a real application we d need to hit the ItemRepo to update, but as its a collection i skipped that part.
+        /// </summary>
+        /// <param name="cartItem"></param>
         public void UpdateStock(CartItem cartItem)
         {
             var item = _itemRepo.GetbyId(cartItem.Id);
