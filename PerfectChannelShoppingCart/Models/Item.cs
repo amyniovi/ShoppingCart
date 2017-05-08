@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using PerfectChannelShoppingCart.Controllers;
 
 namespace PerfectChannelShoppingCart.Models
@@ -11,11 +13,21 @@ namespace PerfectChannelShoppingCart.Models
         public int Stock { get; set; }
         public decimal Price { get; set; }
         public string Uri { get; set; }
-        public string Info { get; set; }
 
         public bool IsEligibleForCart()
         {
             return EligibleItemDelegates.AddToCartRules.All(rule => rule(this));
+        }
+    }
+     public static class EligibleItemDelegates
+    {
+        public static Predicate<Item> InStock = item => item.Stock > 0;
+  
+        public static List<Predicate<Item>> AddToCartRules = new List<Predicate<Item>>();
+
+        static EligibleItemDelegates()
+        {
+            AddToCartRules.Add(InStock);
         }
     }
 }

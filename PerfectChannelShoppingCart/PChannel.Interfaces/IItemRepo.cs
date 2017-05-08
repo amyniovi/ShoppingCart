@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
-using PerfectChannelShoppingCart.Controllers;
 using PerfectChannelShoppingCart.Models;
 
-namespace PerfectChannelShoppingCart.PChannel.Repositories
+namespace PerfectChannelShoppingCart.PChannel.Interfaces
 {
     public interface IItemRepo
     {

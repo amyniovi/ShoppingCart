@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using PerfectChannelShoppingCart.Controllers;
 using PerfectChannelShoppingCart.Models;
+using PerfectChannelShoppingCart.PChannel.Factories;
 using PerfectChannelShoppingCart.PChannel.Interfaces;
 
 namespace PerfectChannelShoppingCart.PChannel.Repositories
@@ -24,9 +26,16 @@ namespace PerfectChannelShoppingCart.PChannel.Repositories
             Carts.TryAdd(username, cart);
         }
 
-        public Cart Update(IEnumerable<KeyValuePair<int, int>> itemQuantityKeyValuePair)
+        public Cart UpdateSingleItem(string username, CartItem cartItem)
         {
-            throw new NotImplementedException();
+            var cart = GetByUserName(username);
+            var list = cart.Items.ToList();
+            if (list.Any(x=> x.Id==cartItem.Id))
+                list.Remove(list.Find(x=>x.Id==cartItem.Id));
+            list.Add(cartItem);
+            //cart.Items = list;
+            Carts.TryUpdate(username,new Cart() {UniqueId = username,Items = list},cart );
+            return cart;
         }
     }
 }

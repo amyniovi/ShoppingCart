@@ -1,63 +1,48 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using PerfectChannelShoppingCart.Models;
 using PerfectChannelShoppingCart.PChannel.Interfaces;
 using PerfectChannelShoppingCart.PChannel.Repositories;
+using PerfectChannelShoppingCart.PChannel.Services;
 
 namespace PerfectChannelShoppingCart.Controllers
 {
     [RoutePrefix("api/order")]
     public class OrderController : ApiController
     {
-        private readonly IItemRepo _itemRepo;
         private readonly ICartRepo _cartRepo;
+        private readonly IStockService _stockService;
 
         public OrderController()
         {
-            _itemRepo = new ItemRepo();
             _cartRepo = new CartRepo();
+            _stockService = new StockService();
         }
 
-        public OrderController(IItemRepo itemRepo, ICartRepo cartRepo)
+        public OrderController(IItemRepo itemRepo, ICartRepo cartRepo, IStockService stockService)
         {
-            _itemRepo = itemRepo;
             _cartRepo = cartRepo;
+            _stockService = stockService;
         }
 
         [Route("cart/{username}")]
-        public IHttpActionResult Get(string username )
-        {//This part should be refactored really ...too much responsibility for this Get.
+        public IHttpActionResult Get(string username)
+        {
             var invoice = new Invoice();
-            List<CartItemDto> orderedItems = new List<CartItemDto>();
             var cart = _cartRepo.GetByUserName(username);
-            foreach (var cartItem in cart.Items)
+            if (!cart.IsCheckedOut)
             {
-                var item = _itemRepo.GetbyId(cartItem.Id);
-                if (item.Stock < cartItem.Qty)
+                foreach (var cartItem in cart.Items)
                 {
-                    item.Info = $"Only {item.Stock} items are available";
+                    _stockService.UpdateStock(cartItem);
                 }
-                else
-                    item.Stock -= cartItem.Qty;
-               
-                orderedItems.Add(cartItem);
-               
             }
 
-            invoice.OrderedItems = orderedItems;
-            invoice.TotalPrice = orderedItems.Sum(item => item.PricePerUnit * item.Qty);
+            cart.IsCheckedOut = true;
+            invoice.OrderedItems = cart.Items.ToList();
+            invoice.TotalPrice = cart.Items.Sum(item => item.PricePerUnit * item.Qty);
             return Ok(invoice);
         }
     }
-
-    public class Invoice
-    {
-        public decimal TotalPrice { get; set; }
-        public List<CartItemDto> OrderedItems { get; set; }
-    }
-   
 }

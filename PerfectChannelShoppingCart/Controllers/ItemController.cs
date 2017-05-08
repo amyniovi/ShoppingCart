@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Web.Http;
+using PerfectChannelShoppingCart.PChannel.Interfaces;
 using PerfectChannelShoppingCart.PChannel.Repositories;
 
 namespace PerfectChannelShoppingCart.Controllers
@@ -22,14 +23,15 @@ namespace PerfectChannelShoppingCart.Controllers
         public IHttpActionResult Get()
         {
             var items = _itemRepo.Get().ToList();
-            items.ForEach(item=>item.Uri = Request.RequestUri.ToString() + "/" +item.Id);
+            if (Request != null)
+                items.ForEach(item => item.Uri = Request.RequestUri.ToString() + "/" + item.Id);
             return Ok(items);
         }
 
-        [Route("{id}")]
+        [Route("{id:int}")]
         public IHttpActionResult Get(int id)
         {
-            return  Ok(_itemRepo.GetbyId(id));
+            return Ok(_itemRepo.GetbyId(id));
         }
     }
 }

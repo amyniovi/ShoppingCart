@@ -7,5 +7,7 @@ namespace PerfectChannelShoppingCart.PChannel.Interfaces
     {
         Cart GetByUserName(string username);
         void AddByUserName(string username);
+         Cart UpdateSingleItem(string username, CartItem cartItem);
+
     }
 }

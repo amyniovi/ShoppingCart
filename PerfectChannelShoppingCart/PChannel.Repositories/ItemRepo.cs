@@ -3,11 +3,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using PerfectChannelShoppingCart.Models;
+using PerfectChannelShoppingCart.PChannel.Interfaces;
 
 namespace PerfectChannelShoppingCart.PChannel.Repositories
 {
     public class ItemRepo : IItemRepo
     {
+        //This should be a concurrent Dictionary just tried to not over-engineer.
+        //This would not be thread safe as is.
         public static ConcurrentBag<Item> Items = new ConcurrentBag<Item>()
         {
             new Item {Id = 1, Name = "Apples", Description = "Fruit", Stock = 5, Price = 2.5m},
@@ -30,6 +33,12 @@ namespace PerfectChannelShoppingCart.PChannel.Repositories
         public Item GetbyName(string itemName)
         {
             return Items.FirstOrDefault(item => String.Equals(item.Name, itemName, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        public void UpdateStock(int id,int newStock)
+        {
+            var itemToUpdate = GetbyId(id);
+            itemToUpdate.Stock = newStock;
         }
     }
 }

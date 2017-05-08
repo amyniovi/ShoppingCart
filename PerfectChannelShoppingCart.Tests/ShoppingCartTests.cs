@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
+using System.Web;
 using System.Web.Http.Results;
 using NUnit.Framework;
 using PerfectChannelShoppingCart.Controllers;
@@ -20,12 +22,12 @@ namespace PerfectChannelShoppingCart.Tests
         private ItemController _itemController;
         private CartController _cartController;
         private OrderController _orderController;
-        private const string _testName = "milk";
-        private const int _testId = 1;
-        private const int _anotherTestId = 4;
-        private const int _outOfStockItemId = 3;
-        private const string _outOfStockItemName = "Oranges";
-        private Dictionary<string, int> _orderedItems;
+        private const string TestName = "milk";
+        private const int TestId = 1;
+        private const int AnotherTestId = 4;
+        private const int OutOfStockItemId = 3;
+        private const string OutOfStockItemName = "Oranges";
+        private readonly List<CartItem> _orderedItems = new List<CartItem>();
         private Invoice _testInvoice;
 
         [SetUp]
@@ -34,22 +36,13 @@ namespace PerfectChannelShoppingCart.Tests
             _cartController = new CartController();
             _orderController = new OrderController();
             _itemController = new ItemController();
-            _orderedItems = new Dictionary<string, int>();
-            _orderedItems.Add("Bread", 2);
-            _orderedItems.Add("Chocolate", 5);
-            _testInvoice = new Invoice();
-            _testInvoice.OrderedItems = new List<CartItemDto>()
-            { new CartItemDto()
-                {
-                    Name = "Bread",Qty = 2
-
-                } ,
-                new CartItemDto()
-                {
-                    Name = "Chocolate", Qty = 5
-
-                } };
-            _testInvoice.TotalPrice = 2 * 1.35m + 5 * 1.79m;
+            _orderedItems.Add(new CartItem() { Name = "Bread", Qty = 2 });
+            _orderedItems.Add(new CartItem() { Name = "chocolate", Qty = 5 });
+            _testInvoice = new Invoice
+            {
+                OrderedItems = _orderedItems,
+                TotalPrice = 2*1.35m + 5*1.79m
+            };
         }
 
         [Test]
@@ -57,8 +50,9 @@ namespace PerfectChannelShoppingCart.Tests
         {
             var controller = new ItemController();
             var allItems = _itemRepo.Get();
-
-            var result = controller.Get() as OkNegotiatedContentResult<IEnumerable<Item>>;
+           // controller.Request = new HttpRequestMessage();
+           // controller.Request.RequestUri = new Uri("http://api/item");
+            var result = controller.Get() as OkNegotiatedContentResult<List<Item>>;
 
             CollectionAssert.AreEqual(allItems, result?.Content);
         }
@@ -72,10 +66,10 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            var result = _cartController.Post(_testId, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
+            var result = _cartController.Post(TestId, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
 
             Assert.That(result?.Content.Items.Count() == initialItemCount + 1);
-            Assert.That(result?.Content.Items.Last().Id == _testId);
+            Assert.That(result?.Content.Items.Last().Id == TestId);
         }
 
         [Test]
@@ -86,10 +80,10 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            var result = _cartController.Post(_testName, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
+            var result = _cartController.Post(TestName, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
 
             Assert.That(result?.Content.Items.Count() == initialItemCount + 1);
-            Assert.That(result?.Content.Items.Last().Name == _testName);
+            Assert.That(String.Equals(result?.Content.Items.Last().Name , TestName,StringComparison.CurrentCultureIgnoreCase));
         }
 
         [Test]
@@ -108,13 +102,26 @@ namespace PerfectChannelShoppingCart.Tests
             _cartRepo.AddByUserName(TestUsername);
             _cartController.Get(TestUsername);
 
-            _cartController.Post(_testId, 1, TestUsername);
-            var result = _cartController.Post(_anotherTestId, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
+            _cartController.Post(TestId, 1, TestUsername);
+            var result = _cartController.Post(AnotherTestId, 1, TestUsername) as OkNegotiatedContentResult<Cart>;
 
             Assert.That(result?.Content.Items.Count() == 2);
-            var list = new List<Item> { _itemRepo.GetbyId(_testId), _itemRepo.GetbyId(_anotherTestId) };
-            CollectionAssert.AreEqual(list, result.Content.Items);
+           Assert.That(result.Content.Items.All(x=>x.Id ==TestId || x.Id == AnotherTestId));
         }
+
+        [Test]
+        public void AddSameItems_GetCart_ReturnsCartWithSingleItemAndCorrectQty()
+        {
+            _cartRepo.AddByUserName(TestUsername);
+            _cartController.Get(TestUsername);
+
+            _cartController.Post(TestId, 1, TestUsername);
+            var result = _cartController.Post(TestId, 4, TestUsername) as OkNegotiatedContentResult<Cart>;
+
+            Assert.That(result?.Content.Items.Count() == 1);
+            Assert.That(result.Content.Items.All(x => x.Id == TestId));
+        }
+
 
         [Test]
         public void PostCart_ItemId_DoesntAddIfOutOfStock()
@@ -123,10 +130,10 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            _cartController.Post(_outOfStockItemId, 1, TestUsername);
+            _cartController.Post(OutOfStockItemId, 1, TestUsername);
 
             Assert.That(cart.Items.Count() == initialItemCount);
-            Assert.That(cart.Items.All(item => item.Id != _outOfStockItemId));
+            Assert.That(cart.Items.All(item => item.Id != OutOfStockItemId));
         }
 
         [Test]
@@ -136,39 +143,35 @@ namespace PerfectChannelShoppingCart.Tests
             var cart = _cartRepo.GetByUserName(TestUsername);
             var initialItemCount = cart.Items.Count();
 
-            _cartController.Post(_outOfStockItemName, 1, TestUsername);
+            _cartController.Post(OutOfStockItemName, 1, TestUsername);
 
             Assert.That(cart.Items.Count() == initialItemCount);
-            Assert.That(cart.Items.All(item => item.Name != _outOfStockItemName));
+            Assert.That(cart.Items.All(item => item.Name != OutOfStockItemName));
         }
 
         [Test]
         public void CheckoutCart_PostOrder_ReturnInvoiceOfItems()
         {
             _cartRepo.AddByUserName(TestUsername);
-
-            var result = _orderController.Get(_orderedItems) as OkNegotiatedContentResult<Invoice>;
+            _cartController.Post("Bread", 2, TestUsername);
+            _cartController.Post("Chocolate", 5, TestUsername);
+            var result = _orderController.Get(TestUsername) as OkNegotiatedContentResult<Invoice>;
 
             Assert.That(result?.Content.TotalPrice == _testInvoice.TotalPrice);
-            //check individual items too (prices)
-        }
-
-
-        [Test]
-        public void Get_Invoice_ByCartName_GetInvoiceOfCorrectItems()
-        {
         }
 
         [Test]
         public void CheckoutCart_ThenRequestAllItems_ExpectStockReduced()
         {
             _cartRepo.AddByUserName(TestUsername);
+            _cartController.Post("Milk", 5, TestUsername);
 
-            var result = _orderController.Get(_orderedItems) as OkNegotiatedContentResult<Invoice>;
+            //checkout order
+            _orderController.Get(TestUsername);
 
             var resultItems = _itemController.Get() as OkNegotiatedContentResult<List<Item>>;
             var items = resultItems?.Content;
-            Assert.That(items?.FirstOrDefault(item => item.Name == "Chocolate")?.Stock == 15);
+            Assert.That(items?.FirstOrDefault(item => item.Name == "Milk")?.Stock == 5);
         }
 
         [TearDown]
@@ -176,9 +179,5 @@ namespace PerfectChannelShoppingCart.Tests
         {
             CartRepo.Carts.Clear();
         }
-
-
-
-
     }
 }

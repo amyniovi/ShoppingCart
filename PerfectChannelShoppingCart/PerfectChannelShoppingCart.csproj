@@ -130,13 +130,16 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Cart.cs" />
-    <Compile Include="Models\CartItemDto.cs" />
+    <Compile Include="Models\CartItem.cs" />
+    <Compile Include="Models\Invoice.cs" />
     <Compile Include="Models\Item.cs" />
-    <Compile Include="PChannel.Factories\ItemDtoFactory.cs" />
+    <Compile Include="PChannel.Factories\CartItemFactory.cs" />
     <Compile Include="PChannel.Interfaces\ICartRepo.cs" />
+    <Compile Include="PChannel.Interfaces\IItemRepo.cs" />
+    <Compile Include="PChannel.Interfaces\IStockService.cs" />
     <Compile Include="PChannel.Repositories\CartRepo.cs" />
-    <Compile Include="PChannel.Repositories\IItemRepo.cs" />
     <Compile Include="PChannel.Repositories\ItemRepo.cs" />
+    <Compile Include="PChannel.Services\StockService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
