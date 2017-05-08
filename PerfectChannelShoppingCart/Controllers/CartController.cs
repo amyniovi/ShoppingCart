@@ -11,7 +11,6 @@ namespace PerfectChannelShoppingCart.Controllers
     {
         private readonly ICartRepo _cartRepo;
         private readonly IItemRepo _itemRepo;
-        public const string OutOfStockText = "This item is currently unavailable";
        
         public CartController()
         {
@@ -69,7 +68,7 @@ namespace PerfectChannelShoppingCart.Controllers
       /// This method updates the cart with a total count of "qty" for that item id.
       /// </summary>
       /// <param name="id"></param>
-      /// <param name="qty"></param> total quantity for the items of this id
+      /// <param name="qty"></param> total quantity for the items of this id;
       /// <param name="username"></param>
       /// <returns></returns>
         [Route("{username}/item/{id}/{qty}")]
@@ -93,7 +92,7 @@ namespace PerfectChannelShoppingCart.Controllers
         }
 
         /// <summary>
-        ///Same as above but updates an item in the cart using its name.
+        ///Same as above but finds an item in the cart using its name.
         /// </summary>
         [Route("{username}/item/{id:int}/{qty:int}")]
         public IHttpActionResult Post(string itemName, int qty, string username)

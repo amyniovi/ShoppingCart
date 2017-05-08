@@ -20,7 +20,7 @@ namespace PerfectChannelShoppingCart.Controllers
             _stockService = new StockService();
         }
 
-        public OrderController(IItemRepo itemRepo, ICartRepo cartRepo, IStockService stockService)
+        public OrderController(ICartRepo cartRepo, IStockService stockService)
         {
             _cartRepo = cartRepo;
             _stockService = stockService;

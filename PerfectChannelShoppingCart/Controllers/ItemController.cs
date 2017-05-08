@@ -19,7 +19,10 @@ namespace PerfectChannelShoppingCart.Controllers
         {
             _itemRepo = itemRepo;
         }
-
+        /// <summary>
+        /// Gets All available items
+        /// </summary>
+        /// <returns></returns>
         public IHttpActionResult Get()
         {
             var items = _itemRepo.Get().ToList();

@@ -9,6 +9,5 @@ namespace PerfectChannelShoppingCart.Models
         public decimal PricePerUnit { get; set; }
         public string Info { get; set; } = String.Empty;
         public int Qty { get; set; }
-      
     }
 }
